@@ -8,7 +8,7 @@
             objectClass="org.eclipse.core.resources.IFile"
             id="com.aksu.tools.tgs.contribution1">
          <menu
-               label="Upload to DEV"
+               label="MyTools"
                path="additions"
                id="com.aksu.tools.tgs.menu1">
             <separator
@@ -16,11 +16,18 @@
             </separator>
          </menu>
          <action
-               label="MyTools"
+               label="Upload to DEV"
                class="com.aksu.tools.tgs.popup.actions.UploadAction"
                menubarPath="com.aksu.tools.tgs.menu1/group1"
                enablesFor="1"
                id="com.aksu.tools.tgs.newAction">
+         </action>
+         <action
+               class="com.aksu.tools.tgs.popup.actions.UploadAction"
+               enablesFor="1"
+               id="com.aksu.tools.tgs.uploadToTESTAction"
+               label="Upload to TEST"
+               menubarPath="com.aksu.tools.tgs.menu1/group1">
          </action>
       </objectContribution>
    </extension>
