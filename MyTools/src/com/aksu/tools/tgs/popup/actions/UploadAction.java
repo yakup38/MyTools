@@ -43,8 +43,8 @@ public class UploadAction implements IObjectActionDelegate {
 	private static String password = "uWXET_7E5"; //$NON-NLS-1$
 
 	private static String driverClass = "oracle.jdbc.OracleDriver"; //$NON-NLS-1$
-//	private static String driverURL = "jdbc:oracle:thin:@ldap://oid.cc.cec.eu.int:389/fp6rtdy,cn=OracleContext,dc=cc,dc=cec,dc=eu,dc=int"; //$NON-NLS-1$ //$NON-NLS-2$
-	private static String driverURL = "jdbc:oracle:thin:@server:1521:db"; //$NON-NLS-1$ //$NON-NLS-2$
+	private static String driverURL = "jdbc:oracle:thin:@ldap://oid.cc.cec.eu.int:389/fp6rtdy,cn=OracleContext,dc=cc,dc=cec,dc=eu,dc=int"; //$NON-NLS-1$ //$NON-NLS-2$
+//	private static String driverURL = "jdbc:oracle:thin:@server:1521:db"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
 	 * Constructor for Action1.
