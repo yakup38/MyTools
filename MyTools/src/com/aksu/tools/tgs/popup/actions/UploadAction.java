@@ -29,18 +29,22 @@ public class UploadAction implements IObjectActionDelegate {
 
 	private Shell shell;
 
-	private static String providerID = "org.eclipse.datatools.connectivity.db.derby.embedded.connectionProfile"; //$NON-NLS-1$
+//	private static String providerID = "org.eclipse.datatools.connectivity.db.derby.embedded.connectionProfile"; //$NON-NLS-1$
+	private static String providerID = "org.eclipse.datatools.enablement.oracle.connectionProfile"; //$NON-NLS-1$
 	private static String vendor = "Oracle"; //$NON-NLS-1$
 	private static String version = "11"; //$NON-NLS-1$
 
 //	private static String jarList = "C:\\Derby10.1.3.1\\db-derby-10.1.3.1-bin\\lib\\derby.jar"; //$NON-NLS-1$
-	private static String jarList = "C:\\Pgm\\R3-DEV\\maven3_repository\\com\\oracle\\weblogic\\ojdbc6\\12.1.2-0-0\\ojdbc6-12.1.2-0-0.jar"; //$NON-NLS-1$
+//	private static String jarList = "C:\\Pgm\\R3-DEV\\maven3_repository\\com\\oracle\\weblogic\\ojdbc6\\12.1.2-0-0\\ojdbc6-12.1.2-0-0.jar"; //$NON-NLS-1$
+	private static String jarList = "C:\\Oracle\\Oracle_Home\\oracle_common\\rda\\da\\lib\\ojdbc14.jar"; //$NON-NLS-1$
 //	private static String dbPath = "c:\\DerbyDatabases\\MyDB"; //$NON-NLS-1$
+	private static String dbName = "fp6rtdy"; //$NON-NLS-1$
 	private static String userName = "tgs_rw"; //$NON-NLS-1$
 	private static String password = "uWXET_7E5"; //$NON-NLS-1$
 
 	private static String driverClass = "oracle.jdbc.OracleDriver"; //$NON-NLS-1$
-	private static String driverURL = "jdbc:oracle:thin:@ldap://oid.cc.cec.eu.int:389/fp6rtdy,cn=OracleContext,dc=cc,dc=cec,dc=eu,dc=int"; //$NON-NLS-1$ //$NON-NLS-2$
+//	private static String driverURL = "jdbc:oracle:thin:@ldap://oid.cc.cec.eu.int:389/fp6rtdy,cn=OracleContext,dc=cc,dc=cec,dc=eu,dc=int"; //$NON-NLS-1$ //$NON-NLS-2$
+	private static String driverURL = "jdbc:oracle:thin:@server:1521:db"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
 	 * Constructor for Action1.
@@ -67,8 +71,8 @@ public class UploadAction implements IObjectActionDelegate {
 //		listDriverDefs();
 
 		try {
-//			createTransientDerbyProfile();
-			registerConnectionProfile();
+			createTransientDerbyProfile();
+//			registerConnectionProfile();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -77,16 +81,18 @@ public class UploadAction implements IObjectActionDelegate {
 	}
 
 	private void registerConnectionProfile() {
+//		IPropertySet ips = new PropertySetImpl("Our Driver Name", "Our Driver ID");
 		IPropertySet ips = new PropertySetImpl("Our Driver Name", "Our Driver ID");
 		Properties baseProperties = generateTransientDerbyProperties();
 		ips.setBaseProperties(baseProperties);
 		
-		DriverInstance di = new DriverInstance( ips );
-		DriverManager.getInstance().addDriverInstance(di);
+//		DriverInstance di = new DriverInstance( ips );
+//		DriverManager.getInstance().addDriverInstance(di);
+//		DriverManager.getInstance().getDriverInstancesByTemplate("org.eclipse.datatools.enablement.oracle.11.driverTemplate");
 		
 		ProfileManager pm = ProfileManager.getInstance();
 		/* Now that we have the driver definition above, create a profile that references it. */
-		IConnectionProfile icp = pm.getProfileByName("TGS_DEV");
+		IConnectionProfile icp = pm.getProfileByName("Our Connection Profile");
 		if(icp != null){
 			try {
 				pm.deleteProfile(icp);
@@ -95,7 +101,8 @@ public class UploadAction implements IObjectActionDelegate {
 			}
 		}
 		
-		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Our Driver ID");
+//		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Our Driver ID");
+//		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Oracle");
 //		String providerID = "org.eclipse.datatools.connectivity.db.derby.embedded.connectionProfile";
 		try {
 			pm.createProfile("Our Connection Profile", "Our Profile Description", providerID, baseProperties);
@@ -141,23 +148,29 @@ public class UploadAction implements IObjectActionDelegate {
 	       baseProperties.setProperty( IDriverMgmtConstants.PROP_DEFN_JARLIST, jarList );
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.DRIVER_CLASS_PROP_ID, driverClass);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.URL_PROP_ID, driverURL);
+	       baseProperties.setProperty(IJDBCConnectionProfileConstants.DATABASE_NAME_PROP_ID, dbName);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.USERNAME_PROP_ID, userName);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.PASSWORD_PROP_ID, password);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.DATABASE_VENDOR_PROP_ID, vendor);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.DATABASE_VERSION_PROP_ID, version);
 	       baseProperties.setProperty(IJDBCConnectionProfileConstants.SAVE_PASSWORD_PROP_ID, String.valueOf( true ) );
+	       baseProperties.setProperty(IDriverMgmtConstants.PROP_DEFN_TYPE, "org.eclipse.datatools.enablement.oracle.11.driverTemplate");
+//	       baseProperties.setProperty(IDriverMgmtConstants.PROP_DEFN_TYPE, driverClass);
+	       baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Our Driver ID");
+
 	       return baseProperties;
 	   }
 
 	   public void createTransientDerbyProfile() throws Exception {
 	       ProfileManager pm = ProfileManager.getInstance();
 	      
-	       IConnectionProfile transientDerby = pm.createTransientProfile(null, generateTransientDerbyProperties());
+//	       IConnectionProfile transientDerby = pm.createTransientProfile(providerId, generateTransientDerbyProperties());
 	       // do something with the profile
-//			IConnectionProfile dev = ProfileManager.getInstance().getProfileByName("DEV");
+			IConnectionProfile dev = ProfileManager.getInstance().getProfileByName("TGS Dev");
+			printProperties(dev);
 
-			IConnection c = transientDerby.createConnection("java.sql.Connection");
-			IStatus status = transientDerby.connect();
+//			IConnection c = transientDerby.createConnection("java.sql.Connection");
+//			IStatus status = transientDerby.connect();
 //	       IStatus status1 = dev.connect();
 //	       if (status1.isOK()) {
 //	           // success
@@ -182,33 +195,41 @@ public class UploadAction implements IObjectActionDelegate {
 //	           }
 //	       }
 	       
-	       if (status.isOK()) {
-	    	   // success
-	    	   java.sql.Connection conn = getJavaConnectionForProfile(transientDerby);
-	    	   if (conn != null) {
-	    		   try {
-	    			   java.sql.Statement stmt = conn.createStatement();
-	    			   java.sql.ResultSet results = stmt.executeQuery("select * from TGS.DOCUMENT");
-	    			   if(results != null) {
-	    				   print(results);
-	    			   }
-	    		   } catch (java.sql.SQLException sqle) {
-	    			   sqle.printStackTrace();
-	    		   }
-	    		   
-	    	   }
-	    	   
-	       } else {
-	    	   // failure :(
-	    	   if (status.getException() != null) {
-	    		   status.getException().printStackTrace();
-	    	   }
-	       }
+//	       if (status.isOK()) {
+//	    	   // success
+//	    	   java.sql.Connection conn = getJavaConnectionForProfile(transientDerby);
+//	    	   if (conn != null) {
+//	    		   try {
+//	    			   java.sql.Statement stmt = conn.createStatement();
+//	    			   java.sql.ResultSet results = stmt.executeQuery("select * from TGS.DOCUMENT");
+//	    			   if(results != null) {
+//	    				   print(results);
+//	    			   }
+//	    		   } catch (java.sql.SQLException sqle) {
+//	    			   sqle.printStackTrace();
+//	    		   }
+//	    		   
+//	    	   }
+//	    	   
+//	       } else {
+//	    	   // failure :(
+//	    	   if (status.getException() != null) {
+//	    		   status.getException().printStackTrace();
+//	    	   }
+//	       }
 	       
 	       
 	   }	
 	   
-	   private void print(ResultSet resultSet) throws SQLException {
+	   private void printProperties(IConnectionProfile dev) {
+		   System.out.println("ProviderID : " + dev.getProviderId());
+		   for(Object k : dev.getBaseProperties().keySet()) {
+			   System.out.println("Property " + k.toString() + " :" + dev.getBaseProperties().getProperty((String)k).toString());
+		   }
+		   
+	}
+
+	private void print(ResultSet resultSet) throws SQLException {
 		   ResultSetMetaData rsmd = resultSet.getMetaData();
 		   int columnsNumber = rsmd.getColumnCount();
 		   while (resultSet.next()) {
