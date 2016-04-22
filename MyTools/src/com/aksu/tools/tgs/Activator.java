@@ -19,6 +19,8 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
+		System.out.println("**************** Activator() CONSTRUCTOR ********************");
+		
 	}
 
 	/*
@@ -28,6 +30,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		System.out.println("**************** Activator start() ********************");
 	}
 
 	/*
@@ -37,6 +40,8 @@ public class Activator extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
+		System.out.println("**************** Activator stop() ********************");
+		
 	}
 
 	/**
@@ -45,6 +50,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @return the shared instance
 	 */
 	public static Activator getDefault() {
+		System.out.println("**************** Activator getDefault() ********************");
 		return plugin;
 	}
 
@@ -56,6 +62,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @return the image descriptor
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
+		System.out.println("**************** Activator getImageDecriptor() ********************");
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 }

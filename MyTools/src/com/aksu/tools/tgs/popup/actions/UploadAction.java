@@ -1,12 +1,12 @@
 package com.aksu.tools.tgs.popup.actions;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Properties;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.datatools.connectivity.ConnectionProfileException;
 import org.eclipse.datatools.connectivity.IConnection;
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.IManagedConnection;
@@ -14,6 +14,8 @@ import org.eclipse.datatools.connectivity.ProfileManager;
 import org.eclipse.datatools.connectivity.drivers.DriverInstance;
 import org.eclipse.datatools.connectivity.drivers.DriverManager;
 import org.eclipse.datatools.connectivity.drivers.IDriverMgmtConstants;
+import org.eclipse.datatools.connectivity.drivers.IPropertySet;
+import org.eclipse.datatools.connectivity.drivers.PropertySetImpl;
 import org.eclipse.datatools.connectivity.drivers.jdbc.IJDBCConnectionProfileConstants;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -27,7 +29,7 @@ public class UploadAction implements IObjectActionDelegate {
 
 	private Shell shell;
 
-	private static String providerID = "org.eclipse.datatools.connectivity.db.oracle.embedded.connectionProfile"; //$NON-NLS-1$
+	private static String providerID = "org.eclipse.datatools.connectivity.db.derby.embedded.connectionProfile"; //$NON-NLS-1$
 	private static String vendor = "Oracle"; //$NON-NLS-1$
 	private static String version = "11"; //$NON-NLS-1$
 
@@ -65,11 +67,43 @@ public class UploadAction implements IObjectActionDelegate {
 //		listDriverDefs();
 
 		try {
-			createTransientDerbyProfile();
+//			createTransientDerbyProfile();
+			registerConnectionProfile();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+	}
+
+	private void registerConnectionProfile() {
+		IPropertySet ips = new PropertySetImpl("Our Driver Name", "Our Driver ID");
+		Properties baseProperties = generateTransientDerbyProperties();
+		ips.setBaseProperties(baseProperties);
+		
+		DriverInstance di = new DriverInstance( ips );
+		DriverManager.getInstance().addDriverInstance(di);
+		
+		ProfileManager pm = ProfileManager.getInstance();
+		/* Now that we have the driver definition above, create a profile that references it. */
+		IConnectionProfile icp = pm.getProfileByName("TGS_DEV");
+		if(icp != null){
+			try {
+				pm.deleteProfile(icp);
+			} catch (ConnectionProfileException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Our Driver ID");
+//		String providerID = "org.eclipse.datatools.connectivity.db.derby.embedded.connectionProfile";
+		try {
+			pm.createProfile("Our Connection Profile", "Our Profile Description", providerID, baseProperties);
+		} catch (ConnectionProfileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 	}
 
@@ -118,46 +152,45 @@ public class UploadAction implements IObjectActionDelegate {
 	   public void createTransientDerbyProfile() throws Exception {
 	       ProfileManager pm = ProfileManager.getInstance();
 	      
-	       IConnectionProfile transientDerby = pm.createTransientProfile(providerID, generateTransientDerbyProperties());
+	       IConnectionProfile transientDerby = pm.createTransientProfile(null, generateTransientDerbyProperties());
 	       // do something with the profile
-			IConnectionProfile dev = ProfileManager.getInstance().getProfileByName("DEV");
+//			IConnectionProfile dev = ProfileManager.getInstance().getProfileByName("DEV");
 
 			IConnection c = transientDerby.createConnection("java.sql.Connection");
 			IStatus status = transientDerby.connect();
-	       IStatus status1 = dev.connect();
-	       if (status1.isOK()) {
-	           // success
-	    	   java.sql.Connection conn1 = (java.sql.Connection) (dev.getManagedConnection("java.sql.Connection").getConnection().getRawConnection());
-	           if (conn1 != null) {
-	               try {
-	                   java.sql.Statement stmt1 = conn1.createStatement();
-	                   java.sql.ResultSet results1 = stmt1.executeQuery("select * from TGS.DOCUMENT");
-	                   if(results1 != null) {
-	                	   print(results1);
-	                   }
-	               } catch (java.sql.SQLException sqle) {
-	                   sqle.printStackTrace();
-	               }
-
-	           }
-	          
-	       } else {
-	           // failure :(
-	           if (status.getException() != null) {
-	               status.getException().printStackTrace();
-	           }
-	       }
+//	       IStatus status1 = dev.connect();
+//	       if (status1.isOK()) {
+//	           // success
+//	    	   java.sql.Connection conn1 = (java.sql.Connection) (dev.getManagedConnection("java.sql.Connection").getConnection().getRawConnection());
+//	           if (conn1 != null) {
+//	               try {
+//	                   java.sql.Statement stmt1 = conn1.createStatement();
+//	                   java.sql.ResultSet results1 = stmt1.executeQuery("select * from TGS.DOCUMENT");
+//	                   if(results1 != null) {
+//	                	   print(results1);
+//	                   }
+//	               } catch (java.sql.SQLException sqle) {
+//	                   sqle.printStackTrace();
+//	               }
+//
+//	           }
+//	          
+//	       } else {
+//	           // failure :(
+//	           if (status.getException() != null) {
+//	               status.getException().printStackTrace();
+//	           }
+//	       }
 	       
 	       if (status.isOK()) {
 	    	   // success
-	    	   java.sql.Connection conn1 = (Connection) transientDerby.createConnection("java.sql.Connection").getRawConnection();
 	    	   java.sql.Connection conn = getJavaConnectionForProfile(transientDerby);
 	    	   if (conn != null) {
 	    		   try {
 	    			   java.sql.Statement stmt = conn.createStatement();
 	    			   java.sql.ResultSet results = stmt.executeQuery("select * from TGS.DOCUMENT");
 	    			   if(results != null) {
-	    				   System.out.println(results.toString());
+	    				   print(results);
 	    			   }
 	    		   } catch (java.sql.SQLException sqle) {
 	    			   sqle.printStackTrace();
@@ -181,8 +214,15 @@ public class UploadAction implements IObjectActionDelegate {
 		   while (resultSet.next()) {
 		       for (int i = 1; i <= columnsNumber; i++) {
 		           if (i > 1) System.out.print(",  ");
+		           if(!rsmd.getColumnName(i).equalsIgnoreCase("BYTES")) {
+		        	   
 		           String columnValue = resultSet.getString(i);
 		           System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		           } else {
+		        	   
+		        	   String columnValue = "BLOB_BINARY_VALUE";
+		        	   System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		           }
 		       }
 		       System.out.println("");
 		   }		
