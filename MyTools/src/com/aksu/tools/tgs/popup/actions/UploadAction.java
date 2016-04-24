@@ -70,17 +70,17 @@ public class UploadAction implements IObjectActionDelegate {
 //		listProfiles();
 //		listDriverDefs();
 
-		try {
-			createTransientDerbyProfile();
-//			registerConnectionProfile();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			createTransientDerbyProfile();
+//			createConnectionProfile();
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 	}
 
-	private void registerConnectionProfile() {
+	private IConnectionProfile createConnectionProfile() {
 //		IPropertySet ips = new PropertySetImpl("Our Driver Name", "Our Driver ID");
 		IPropertySet ips = new PropertySetImpl("Our Driver Name", "Our Driver ID");
 		Properties baseProperties = generateTransientDerbyProperties();
@@ -111,6 +111,7 @@ public class UploadAction implements IObjectActionDelegate {
 			e.printStackTrace();
 		}
 		
+		return icp;
 		
 	}
 
@@ -162,7 +163,12 @@ public class UploadAction implements IObjectActionDelegate {
 	   }
 
 	   public void createTransientDerbyProfile() throws Exception {
-	       ProfileManager pm = ProfileManager.getInstance();
+	      printProperties(System.getProperties());
+		   System.out.println("***************"  + System.getProperty("hostname"));
+		   
+		   ProfileManager pm = ProfileManager.getInstance();
+		   
+		   
 	      
 //	       IConnectionProfile transientDerby = pm.createTransientProfile(providerId, generateTransientDerbyProperties());
 	       // do something with the profile
@@ -223,10 +229,15 @@ public class UploadAction implements IObjectActionDelegate {
 	   
 	   private void printProperties(IConnectionProfile dev) {
 		   System.out.println("ProviderID : " + dev.getProviderId());
-		   for(Object k : dev.getBaseProperties().keySet()) {
-			   System.out.println("Property " + k.toString() + " :" + dev.getBaseProperties().getProperty((String)k).toString());
-		   }
+		   printProperties(dev.getBaseProperties());
 		   
+	}
+
+	private void printProperties(Properties properties) {
+		   for(Object k : properties.keySet()) {
+			   System.out.println("Property " + k.toString() + " :" + properties.getProperty((String)k).toString());
+		   }
+		
 	}
 
 	private void print(ResultSet resultSet) throws SQLException {
