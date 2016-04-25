@@ -233,6 +233,7 @@ public class Activator extends AbstractUIPlugin {
 		        	   
 		           String columnValue = resultSet.getString(i);
 		           System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		           
 		           } else {
 		        	   
 		        	   String columnValue = "BLOB_BINARY_VALUE";

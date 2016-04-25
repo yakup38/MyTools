@@ -6,6 +6,7 @@
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
+            nameFilter="*.xml"
             id="com.aksu.tools.tgs.contribution1">
          <menu
                label="MyTools"
@@ -20,7 +21,7 @@
                class="com.aksu.tools.tgs.popup.actions.UploadAction"
                menubarPath="com.aksu.tools.tgs.menu1/group1"
                enablesFor="1"
-               id="com.aksu.tools.tgs.newAction">
+               id="com.aksu.tools.tgs.uploadToDEVAction">
          </action>
          <action
                class="com.aksu.tools.tgs.popup.actions.UploadAction"
