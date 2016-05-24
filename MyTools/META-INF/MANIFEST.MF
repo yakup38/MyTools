@@ -14,5 +14,4 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.datatools.enablement.oracle.ui;bundle-version="1.0.3"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: ojdbc6-12.1.2-0-0.jar,
- .
+Bundle-ClassPath: ojdbc6-12.1.2-0-0.jar,.

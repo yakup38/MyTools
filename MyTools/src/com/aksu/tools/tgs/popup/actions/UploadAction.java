@@ -33,7 +33,7 @@ import org.w3c.dom.NodeList;
 
 import com.aksu.tools.tgs.Activator;
 
-import oracle.jdbc.OracleResultSet;
+import oracle.jdbc.internal.OracleResultSet;
 import oracle.sql.BLOB;
 
 public class UploadAction implements IObjectActionDelegate {
