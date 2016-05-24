@@ -6,8 +6,14 @@
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
-            nameFilter="*.xml"
             id="com.aksu.tools.tgs.contribution1">
+            
+            <visibility>
+	             <or> 
+		             <objectState name="name" value="*.xslt"> </objectState> 
+		             <objectState name="name" value="*.xsl"> </objectState> 
+	             </or> 
+             </visibility>
          <menu
                label="MyTools"
                path="additions"
