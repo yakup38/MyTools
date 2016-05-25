@@ -14,27 +14,13 @@
 		             <objectState name="name" value="*.xsl"> </objectState> 
 	             </or> 
              </visibility>
-         <menu
-               label="MyTools"
-               path="additions"
-               id="com.aksu.tools.tgs.menu1">
-            <separator
-                  name="group1">
-            </separator>
-         </menu>
-         <action
-               label="Upload to DEV"
-               class="com.aksu.tools.tgs.popup.actions.UploadAction"
-               menubarPath="com.aksu.tools.tgs.menu1/group1"
-               enablesFor="1"
-               id="com.aksu.tools.tgs.uploadToDEVAction">
-         </action>
          <action
                class="com.aksu.tools.tgs.popup.actions.UploadAction"
-               enablesFor="1"
-               id="com.aksu.tools.tgs.uploadToTESTAction"
-               label="Upload to TEST"
-               menubarPath="com.aksu.tools.tgs.menu1/group1">
+               enablesFor="*"
+               id="com.aksu.tools.tgs.uploadToDEVAction"
+               icon="icons/upload_tgs.jpg"
+               label="Upload to TGS"
+               menubarPath="additions">
          </action>
       </objectContribution>
    </extension>
