@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: MyTools
-Bundle-SymbolicName: MyTools;singleton:=true
+Bundle-Name: TgsTools
+Bundle-SymbolicName: TgsTools;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: com.aksu.tools.tgs.Activator
 Bundle-Vendor: Yakup AKSU

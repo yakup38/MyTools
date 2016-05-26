@@ -190,7 +190,7 @@ public class Activator extends AbstractUIPlugin {
 		baseProperties.setProperty(IJDBCConnectionProfileConstants.SAVE_PASSWORD_PROP_ID, String.valueOf(true));
 		baseProperties.setProperty(IDriverMgmtConstants.PROP_DEFN_TYPE,
 				"org.eclipse.datatools.enablement.oracle.11.driverTemplate");
-		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "Our Driver ID");
+		baseProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", "DriverDefn.org.eclipse.datatools.enablement.oracle.11.driverTemplate.Oracle Thin Driver");
 
 		return baseProperties;
 	}
