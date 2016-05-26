@@ -6,13 +6,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,24 +23,23 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.aksu.tools.tgs.Activator;
 
-import oracle.jdbc.internal.OracleResultSet;
-import oracle.sql.BLOB;
-
 public class UploadAction implements IObjectActionDelegate {
 
-	private Shell shell;
+//	private Shell shell;
 	private ISelection selection;
-	private IAction action;
+//	private IAction action;
 	private Activator activator;
+	private IWorkbenchPartSite site;
 
 	private static final String GET_DOCUMENT_ID = "select * from DOCUMENT d where D.ID = (select DOCUMENT_ID from DOCUMENT_METADATA md where MD.MDNAME = ':tgsID' and MD.MDVALUE_STR = ?)";
 
@@ -57,15 +55,13 @@ public class UploadAction implements IObjectActionDelegate {
 	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
 	 */
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-		shell = targetPart.getSite().getShell();
+		site = targetPart.getSite();
 	}
 
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		MessageDialog.openInformation(shell, "MyTools", "MyTools was executed.");
-
 		// Ignore non structured selections
 		if (!(this.selection instanceof IStructuredSelection)) {
 			System.err.printf("Unhandled DFS Action: " + selection.toString());
@@ -84,21 +80,7 @@ public class UploadAction implements IObjectActionDelegate {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				try {
-					switch (actionId) {
-					case "com.aksu.tools.tgs.uploadToDEVAction": {
-						uploadToDev();
-						break;
-					}
-					case "com.aksu.tools.tgs.uploadToTESTAction": {
-						uploadToTest();
-						break;
-					}
-					default: {
-						System.out.printf("Unhandled DFS Action: " + actionId);
-						break;
-					}
-					}
-
+					uploadToDev();
 				} catch (Exception e) {
 					e.printStackTrace();
 					MessageDialog.openError(Display.getDefault().getActiveShell(), "DFS Action error",
@@ -108,42 +90,40 @@ public class UploadAction implements IObjectActionDelegate {
 
 			private void uploadToDev() {
 				System.out.println("Upload to DEV invoked ");
-			}
+				Object obj = ss.getFirstElement();
+				IFile ifile = (IFile) Platform.getAdapterManager().getAdapter(obj, IFile.class);
+				if (ifile == null) {
+					if (obj instanceof IAdaptable) {
+						ifile = (IFile) ((IAdaptable) obj).getAdapter(IFile.class);
+					}
+				}
 
-			private void uploadToTest() {
-				System.out.println("Upload to TEST invoked ");
+				File file = new File(ifile.getLocationURI());
+				System.out.println("=================== file path : " + file.getAbsolutePath() + " ========================");
+				String tgsId = retrieveTgsId(file);
+				if (tgsId == null || tgsId.isEmpty()) {
+					System.out.println("========== Couldn't find the TGS ID, exiting ... =========");
+					return;
+				}
+				System.out.println("========== tgsId : " + tgsId + " =========");
+				Long documentId = retrieveDocumentId(tgsId);
+				if (documentId == null) {
+					System.out.println("========== Couldn't find the Document ID, exiting ... =========");
+					return;
+				}
+				System.out.println("========== documentId : " + documentId + " =========");
+
+				storeContentItem(documentId, file);
+				StringBuilder msg = new StringBuilder("Document ").append(file.getName()).append(" with tgsID = ").append(tgsId)
+						.append(" has been uploaded to DEV");
+				setMessage(msg.toString());
+
+				// IActionBars bars = ToolBarManager getViewSite().getActionBars();
+				// bars.getStatusLineManager().setMessage("Hello");
+				// MessageDialog.openInformation(shell, "TGS Tools", msg.toString());
 			}
 
 		});
-
-		Object obj = ss.getFirstElement();
-		IFile ifile = (IFile) Platform.getAdapterManager().getAdapter(obj, IFile.class);
-		if (ifile == null) {
-			if (obj instanceof IAdaptable) {
-				ifile = (IFile) ((IAdaptable) obj).getAdapter(IFile.class);
-			}
-		}
-
-		File file = new File(ifile.getLocationURI());
-		System.out.println("=================== file path : " + file.getAbsolutePath() + " ========================");
-		String tgsId = retrieveTgsId(file);
-		if (tgsId == null || tgsId.isEmpty()) {
-			System.out.println("========== Couldn't find the TGS ID, exiting ... =========");
-			return;
-		}
-		System.out.println("========== tgsId : " + tgsId + " =========");
-		Long documentId = retrieveDocumentId(tgsId);
-		if (documentId == null) {
-			System.out.println("========== Couldn't find the Document ID, exiting ... =========");
-			return;
-		}
-		System.out.println("========== documentId : " + documentId + " =========");
-
-		try {
-			storeContentItem(documentId, new FileInputStream(file));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
 
 		// try {
 		// DocumentBuilderFactory factory =
@@ -166,6 +146,20 @@ public class UploadAction implements IObjectActionDelegate {
 
 	}
 
+	private void setMessage(String msg) {
+//		IWorkbench wb = PlatformUI.getWorkbench();
+//		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+//
+//		IWorkbenchPage page = win.getActivePage();
+//		IWorkbenchPart part = page.getActivePart();
+//		IWorkbenchPartSite site = part.getSite();
+//
+//		IViewSite vSite = (IViewSite) site;
+
+//		IActionBars actionBars = (IViewSite) site.getActionBars();
+		((IViewSite) site).getActionBars().getStatusLineManager().setMessage(msg);
+	}
+
 	private String retrieveTgsId(File file) {
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line;
@@ -180,8 +174,7 @@ public class UploadAction implements IObjectActionDelegate {
 					tgsIdCandidate = matcher.group(1);
 					if (tgsIdCandidate != null) {
 						tgsIdCandidate = tgsIdCandidate.trim();
-						System.out.println("============================ tgsIdCandidate : " + tgsIdCandidate
-								+ " ====================");
+						System.out.println("============================ tgsIdCandidate : " + tgsIdCandidate + " ====================");
 						return tgsIdCandidate;
 					}
 				}
@@ -236,7 +229,7 @@ public class UploadAction implements IObjectActionDelegate {
 	 */
 	public void selectionChanged(IAction action, ISelection selection) {
 		this.selection = selection;
-		this.action = action;
+//		this.action = action;
 	}
 
 	private Long printAndReturnDocId(ResultSet resultSet) throws SQLException {
@@ -245,8 +238,7 @@ public class UploadAction implements IObjectActionDelegate {
 		int columnsNumber = rsmd.getColumnCount();
 		while (resultSet.next()) {
 			for (int i = 1; i <= columnsNumber; i++) {
-				if (i > 1)
-					System.out.print(",  ");
+				if (i > 1) System.out.print(",  ");
 				if (rsmd.getColumnName(i).equalsIgnoreCase("ID")) {
 					documentId = resultSet.getLong(1);
 				} else if (!rsmd.getColumnName(i).equalsIgnoreCase("BYTES")) {
@@ -264,52 +256,96 @@ public class UploadAction implements IObjectActionDelegate {
 		return documentId;
 	}
 
-	public void storeContentItem(Long contentId, InputStream contentStream) {
+	public void storeContentItem(Long contentId, File file) {
 		// Assume the table row containing other content metadata already exists
 		// and we just do an update
-		PreparedStatement ps = null;
-		OracleResultSet rs = null;
+		PreparedStatement updateAttachment = null;
+		PreparedStatement updateDocument = null;
+		ResultSet rs = null;
 		Connection con = activator.getConnection();
+		String updateAttachmentSQL = "UPDATE EDOMEC_ATTACHMENT  SET BYTES = ?, LENGTH = ?, MODIFIED_ON = ? WHERE  DOCUMENT_ID  = ?";
+		String updateDocumentSQL = "UPDATE DOCUMENT  SET MODIFIED_ON = ? WHERE  ID  = ?";
 		try {
 			// Make sure the content bytes column will have a BLOB value
-			String update = "UPDATE DOCUMENT  SET BYTES = EMPTY_BLOB()  WHERE  ID  = ?";
-			ps = con.prepareStatement(update);
-			ps.setLong(1, contentId);
-			ps.execute();
-
-			try {
-				ps.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-
-			String sql = "SELECT BYTES  FROM DOCUMENT  WHERE ID = ? FOR UPDATE";
-
-			ps = con.prepareStatement(sql);
-			ps.setLong(1, contentId);
-			rs = (OracleResultSet) ps.executeQuery();
-			if (rs.next()) {
-				BLOB blob = (BLOB) rs.getBLOB(1);
-				blob.truncate(0);
-				OutputStream outputStream = blob.setBinaryStream(0L);
-				byte[] buffer = new byte[blob.getBufferSize()];
-				int byteread = 0;
-				while ((byteread = contentStream.read(buffer)) != -1) {
-					outputStream.write(buffer, 0, byteread);
-				}
-				outputStream.close();
-				contentStream.close();
-			}
-
+			con.setAutoCommit(false);
+			updateAttachment = con.prepareStatement(updateAttachmentSQL);
+			updateDocument = con.prepareStatement(updateDocumentSQL);
+			int length = (int) file.length();
+			updateAttachment.setBinaryStream(1, new FileInputStream(file), length);
+			updateAttachment.setLong(2, length);
+			updateAttachment.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
+			updateAttachment.setLong(4, contentId);
+			int res = updateAttachment.executeUpdate();
+			System.out.println(" ================== Resultat Attachment : " + res + " ====================");
+			updateDocument.setTimestamp(1, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
+			updateDocument.setLong(2, contentId);
+			res = updateDocument.executeUpdate();
+			System.out.println(" ================== Resultat Document : " + res + " ====================");
+			con.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			if (con != null) {
+				try {
+					System.err.print("Transaction is being rolled back");
+					con.rollback();
+				} catch (SQLException excep) {
+					excep.printStackTrace();
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			closeResources(ps, rs);
+			closeResources(updateAttachment, rs);
 		}
 	}
 
+	// public void storeContentItem(Long contentId, InputStream contentStream) {
+	// // Assume the table row containing other content metadata already exists
+	// // and we just do an update
+	// PreparedStatement ps = null;
+	// ResultSet rs = null;
+	// Connection con = activator.getConnection();
+	// try {
+	// // Make sure the content bytes column will have a BLOB value
+	// String update = "UPDATE DOCUMENT SET BYTES = EMPTY_BLOB() WHERE ID = ?";
+	// ps = con.prepareStatement(update);
+	// ps.setLong(1, contentId);
+	// ps.execute();
+	//
+	// try {
+	// ps.close();
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// }
+	//
+	// String sql = "SELECT BYTES FROM DOCUMENT WHERE ID = ? FOR UPDATE";
+	//
+	// ps = con.prepareStatement(sql);
+	// ps.setLong(1, contentId);
+	// rs = ps.executeQuery();
+	// if (rs.next()) {
+	// Blob blob = rs.getBlob(1);
+	// blob.truncate(0);
+	// OutputStream outputStream = blob.setBinaryStream(0L);
+	// byte[] buffer = new byte[(int) blob.length() + 900000];
+	// int byteread = 0;
+	// while ((byteread = contentStream.read(buffer)) != -1) {
+	// outputStream.write(buffer, 0, byteread);
+	// }
+	// outputStream.close();
+	// contentStream.close();
+	// con.commit();
+	// }
+	//
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// } finally {
+	// closeResources(ps, rs);
+	// }
+	// }
+	//
 	private void closeResources(PreparedStatement ps, ResultSet rs) {
 		if (ps != null) {
 			try {

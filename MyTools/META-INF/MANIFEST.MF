@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MyTools
 Bundle-SymbolicName: MyTools;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-Activator: com.aksu.tools.tgs.Activator
 Bundle-Vendor: Yakup AKSU
 Require-Bundle: org.eclipse.ui,
@@ -12,6 +12,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.datatools.enablement.oracle;bundle-version="1.0.0",
  org.eclipse.datatools.enablement.oracle.dbdefinition;bundle-version="1.0.103",
  org.eclipse.datatools.enablement.oracle.ui;bundle-version="1.0.3"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: ojdbc6-12.1.2-0-0.jar,.
+Bundle-ClassPath: .

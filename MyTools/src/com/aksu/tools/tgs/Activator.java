@@ -2,14 +2,10 @@ package com.aksu.tools.tgs;
 
 import java.net.UnknownHostException;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.util.Properties;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.datatools.connectivity.ConnectionProfileException;
-import org.eclipse.datatools.connectivity.IConnection;
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.IManagedConnection;
 import org.eclipse.datatools.connectivity.ProfileManager;
@@ -31,15 +27,16 @@ public class Activator extends AbstractUIPlugin {
 	private String hostname = "LOCALHOST";
 
 	// DEV Host Properties
-	private static String DEV_QUERY = "select * from hr.employees";
+//	private static String DEV_QUERY = "select * from hr.employees";
 
 	// Default Properties
-	private static String DEFAULT_QUERY = "select * from TGS.DOCUMENT";
+//	private static String DEFAULT_QUERY = "select * from TGS.DOCUMENT";
 	private static String providerID = "org.eclipse.datatools.enablement.oracle.connectionProfile"; //$NON-NLS-1$
 	private static String vendor = "Oracle"; //$NON-NLS-1$
 	private static String version = "11"; //$NON-NLS-1$
 
-	private static String jarList = "C:\\Oracle\\Oracle_Home\\oracle_common\\rda\\da\\lib\\ojdbc14.jar"; //$NON-NLS-1$
+//	private static String jarList = "C:\\Oracle\\Oracle_Home\\oracle_common\\rda\\da\\lib\\ojdbc14.jar"; //$NON-NLS-1$
+	private static String jarList = "ojdbc6-12.1.2-0-0.jar"; //$NON-NLS-1$
 	private static String dbName = "fp6rtdy"; //$NON-NLS-1$
 	private static String userName = "tgs_rw"; //$NON-NLS-1$
 	private static String password = "uWXET_7E5"; //$NON-NLS-1$
@@ -101,23 +98,25 @@ public class Activator extends AbstractUIPlugin {
 
 	private void createConnection(IConnectionProfile profile) {
 
-		IConnection conn = profile.createConnection("java.sql.Connection");
+//		IConnection conn = profile.createConnection("java.sql.Connection");
 		IStatus status = profile.connect();
 		if (status.isOK()) {
+			System.out.println("**************** DTP Profile status is OK ********************");
+			
 			// success
-			java.sql.Connection conn1 = (java.sql.Connection) (conn.getRawConnection());
-			if (conn1 != null) {
-				try {
-					java.sql.Statement stmt1 = conn1.createStatement();
-					java.sql.ResultSet results1 = stmt1.executeQuery(getQuery());
-					if (results1 != null) {
-						print(results1);
-					}
-				} catch (java.sql.SQLException sqle) {
-					sqle.printStackTrace();
-				}
-
-			}
+//			java.sql.Connection conn1 = (java.sql.Connection) (conn.getRawConnection());
+//			if (conn1 != null) {
+//				try {
+//					java.sql.Statement stmt1 = conn1.createStatement();
+//					java.sql.ResultSet results1 = stmt1.executeQuery(getQuery());
+//					if (results1 != null) {
+//						print(results1);
+//					}
+//				} catch (java.sql.SQLException sqle) {
+//					sqle.printStackTrace();
+//				}
+//
+//			}
 
 		} else {
 			// failure :(
@@ -128,13 +127,13 @@ public class Activator extends AbstractUIPlugin {
 
 	}
 
-	private String getQuery() {
-		String res = DEFAULT_QUERY;
-		if (isDevHost()) {
-			res = DEV_QUERY;
-		}
-		return res;
-	}
+//	private String getQuery() {
+//		String res = DEFAULT_QUERY;
+//		if (isDevHost()) {
+//			res = DEV_QUERY;
+//		}
+//		return res;
+//	}
 
 	private boolean isDevHost() {
 		return DEV_HOSTNAME.equalsIgnoreCase(hostname);
@@ -232,26 +231,26 @@ public class Activator extends AbstractUIPlugin {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
-	private void print(ResultSet resultSet) throws SQLException {
-		ResultSetMetaData rsmd = resultSet.getMetaData();
-		int columnsNumber = rsmd.getColumnCount();
-		while (resultSet.next()) {
-			for (int i = 1; i <= columnsNumber; i++) {
-				if (i > 1)
-					System.out.print(",  ");
-				if (!rsmd.getColumnName(i).equalsIgnoreCase("BYTES")) {
-
-					String columnValue = resultSet.getString(i);
-					System.out.print(columnValue + " " + rsmd.getColumnName(i));
-
-				} else {
-
-					String columnValue = "BLOB_BINARY_VALUE";
-					System.out.print(columnValue + " " + rsmd.getColumnName(i));
-				}
-			}
-			System.out.println("");
-		}
-	}
+//	private void print(ResultSet resultSet) throws SQLException {
+//		ResultSetMetaData rsmd = resultSet.getMetaData();
+//		int columnsNumber = rsmd.getColumnCount();
+//		while (resultSet.next()) {
+//			for (int i = 1; i <= columnsNumber; i++) {
+//				if (i > 1)
+//					System.out.print(",  ");
+//				if (!rsmd.getColumnName(i).equalsIgnoreCase("BYTES")) {
+//
+//					String columnValue = resultSet.getString(i);
+//					System.out.print(columnValue + " " + rsmd.getColumnName(i));
+//
+//				} else {
+//
+//					String columnValue = "BLOB_BINARY_VALUE";
+//					System.out.print(columnValue + " " + rsmd.getColumnName(i));
+//				}
+//			}
+//			System.out.println("");
+//		}
+//	}
 
 }
