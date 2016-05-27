@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,10 +15,7 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.IAction;
@@ -32,23 +28,21 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.aksu.tools.tgs.Activator;
+import com.aksu.tools.tgs.TGSPlugin;
 
 public class UploadAction implements IObjectActionDelegate {
 
 	// private Shell shell;
 	private ISelection selection;
 	// private IAction action;
-	private Activator activator;
+	private TGSPlugin plugin;
 	private IWorkbenchPartSite site;
 
 	private static final String JAZZ_AUTHORITY = "jazz";
 	private static final String SEPARATOR = System.getProperty("file.separator");
 	private static final String JAZZ_DEFAULT_PATH = "/default/";
-	
+
 	private static final String GET_DOCUMENT_ID = "select * from DOCUMENT d where D.ID = (select DOCUMENT_ID from DOCUMENT_METADATA md where MD.MDNAME = ':tgsID' and MD.MDVALUE_STR = ?)";
 	private static final CharSequence EMPTY_STRING = "";
 
@@ -57,7 +51,7 @@ public class UploadAction implements IObjectActionDelegate {
 	 */
 	public UploadAction() {
 		super();
-		activator = Activator.getDefault();
+		plugin = TGSPlugin.getDefault();
 	}
 
 	/**
@@ -97,7 +91,11 @@ public class UploadAction implements IObjectActionDelegate {
 								ifile = (IFile) ((IAdaptable) elem).getAdapter(IFile.class);
 							}
 						}
-
+						
+						plugin.log("Before resolving the ifile ", null);
+						plugin.log("ifile.getLocation().toString()" + ifile.getLocation().toString(), null);
+						plugin.log("ifile.getRawLocation().toString()" + ifile.getRawLocation().toString(), null);
+						plugin.log("ifile.getRawLocation().makeAbsolute().toString()" + ifile.getRawLocation().makeAbsolute().toString(), null);
 						uploadToDev(ifile);
 					}
 
@@ -131,27 +129,30 @@ public class UploadAction implements IObjectActionDelegate {
 
 				// File file = new File(ifile.getRawLocation().toString());
 				File file = null;
+				plugin.log("Attempting to ifile.getRawLocation().toFile() .... ", null);
 
-				file = new File(ifile.getLocationURI().toString()); 
+				file = ifile.getRawLocation().toFile();
 
-				System.out.println(
-						"=================== file path : " + file.getAbsolutePath() + " ========================");
+				plugin.log("=================== file path : " + file.getAbsolutePath() + " ========================", null);
+				System.out.println("=================== file path : " + file.getAbsolutePath() + " ========================");
 				String tgsId = retrieveTgsId(file);
 				if (tgsId == null || tgsId.isEmpty()) {
 					System.out.println("========== Couldn't find the TGS ID, exiting ... =========");
 					return;
 				}
+				plugin.log("========== tgsId : " + tgsId + " =========", null);
 				System.out.println("========== tgsId : " + tgsId + " =========");
 				Long documentId = retrieveDocumentId(tgsId);
 				if (documentId == null) {
 					System.out.println("========== Couldn't find the Document ID, exiting ... =========");
 					return;
 				}
+				plugin.log("========== documentId : " + documentId + " =========", null);
 				System.out.println("========== documentId : " + documentId + " =========");
 
 				storeContentItem(documentId, file);
-				StringBuilder msg = new StringBuilder("Document ").append(file.getName()).append(" with tgsID = ")
-						.append(tgsId).append(" has been uploaded to DEV");
+				StringBuilder msg = new StringBuilder("Document ").append(file.getName()).append(" with tgsID = ").append(tgsId)
+						.append(" has been uploaded to DEV");
 				setMessage(msg.toString());
 			}
 
@@ -177,8 +178,7 @@ public class UploadAction implements IObjectActionDelegate {
 					tgsIdCandidate = matcher.group(1);
 					if (tgsIdCandidate != null) {
 						tgsIdCandidate = tgsIdCandidate.trim();
-						System.out.println("============================ tgsIdCandidate : " + tgsIdCandidate
-								+ " ====================");
+						System.out.println("============================ tgsIdCandidate : " + tgsIdCandidate + " ====================");
 						return tgsIdCandidate;
 					}
 				}
@@ -194,49 +194,49 @@ public class UploadAction implements IObjectActionDelegate {
 		return null;
 	}
 
-//	private String getElePath(IFile ifile) {
-//			String elePath = null;
-//
-//			 MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-//			 "111",
-//			 "11111111" );
-//
-//			 URI locationURI = ifile.getLocationURI();
-//
-//			 MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-//			 "222",
-//			 "2222222" );
-//
-//			 MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-//			 "URI location",
-//			 "locationURI = " + locationURI.toString() );
-//
-//			 if (JAZZ_AUTHORITY.equals(locationURI.getAuthority())) {
-//				if (locationURI.getQuery() != null) {
-//					elePath = new File(locationURI.getQuery()).toString() + SEPARATOR;
-//				} else {
-//
-//					elePath = new File(ifile.getLocationURI()).toString() + SEPARATOR;
-//					
-//					}
-//				}
-//
-//			 MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-//			 "Element path",
-//			 "Before substitution - elePath = " + elePath);
-//			
-//			 MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-//					 "Element path",
-//					 "After substitution - elePath = " + elePath.replace("file:" + SEPARATOR, EMPTY_STRING).replace("file:/", EMPTY_STRING));
-//			 
-//			
-//			return elePath.replace("file:" + SEPARATOR, EMPTY_STRING).replace("file:/", EMPTY_STRING);
-//			 return locationURI.toString();
-//	}
+	// private String getElePath(IFile ifile) {
+	// String elePath = null;
+	//
+	// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
+	// "111",
+	// "11111111" );
+	//
+	// URI locationURI = ifile.getLocationURI();
+	//
+	// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
+	// "222",
+	// "2222222" );
+	//
+	// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
+	// "URI location",
+	// "locationURI = " + locationURI.toString() );
+	//
+	// if (JAZZ_AUTHORITY.equals(locationURI.getAuthority())) {
+	// if (locationURI.getQuery() != null) {
+	// elePath = new File(locationURI.getQuery()).toString() + SEPARATOR;
+	// } else {
+	//
+	// elePath = new File(ifile.getLocationURI()).toString() + SEPARATOR;
+	//
+	// }
+	// }
+	//
+	// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
+	// "Element path",
+	// "Before substitution - elePath = " + elePath);
+	//
+	// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
+	// "Element path",
+	// "After substitution - elePath = " + elePath.replace("file:" + SEPARATOR, EMPTY_STRING).replace("file:/", EMPTY_STRING));
+	//
+	//
+	// return elePath.replace("file:" + SEPARATOR, EMPTY_STRING).replace("file:/", EMPTY_STRING);
+	// return locationURI.toString();
+	// }
 
 	private Long retrieveDocumentId(String tgsId) {
 		Long documentId = null;
-		Connection conn = activator.getConnection();
+		Connection conn = plugin.getConnection();
 		if (conn != null) {
 			try {
 				java.sql.PreparedStatement stmt = conn.prepareStatement(GET_DOCUMENT_ID);
@@ -253,20 +253,20 @@ public class UploadAction implements IObjectActionDelegate {
 		return documentId;
 	}
 
-	public static void traverse(Node node) {
-		NodeList list = node.getChildNodes();
-		for (int i = 0; i < list.getLength(); i++) {
-			Node currentNode = list.item(i);
-			// System.out.println("This -> " + currentNode.getTextContent());
-			traverse(currentNode);
-
-		}
-
-		if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
-			System.out.println("This -> " + node.getTextContent());
-		}
-
-	}
+//	public static void traverse(Node node) {
+//		NodeList list = node.getChildNodes();
+//		for (int i = 0; i < list.getLength(); i++) {
+//			Node currentNode = list.item(i);
+//			// System.out.println("This -> " + currentNode.getTextContent());
+//			traverse(currentNode);
+//
+//		}
+//
+//		if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+//			System.out.println("This -> " + node.getTextContent());
+//		}
+//
+//	}
 
 	/**
 	 * @see IActionDelegate#selectionChanged(IAction, ISelection)
@@ -282,8 +282,7 @@ public class UploadAction implements IObjectActionDelegate {
 		int columnsNumber = rsmd.getColumnCount();
 		while (resultSet.next()) {
 			for (int i = 1; i <= columnsNumber; i++) {
-				if (i > 1)
-					System.out.print(",  ");
+				if (i > 1) System.out.print(",  ");
 				if (rsmd.getColumnName(i).equalsIgnoreCase("ID")) {
 					documentId = resultSet.getLong(1);
 				} else if (!rsmd.getColumnName(i).equalsIgnoreCase("BYTES")) {
@@ -307,7 +306,7 @@ public class UploadAction implements IObjectActionDelegate {
 		PreparedStatement updateAttachment = null;
 		PreparedStatement updateDocument = null;
 		ResultSet rs = null;
-		Connection con = activator.getConnection();
+		Connection con = plugin.getConnection();
 		String updateAttachmentSQL = "UPDATE EDOMEC_ATTACHMENT  SET BYTES = ?, LENGTH = ?, MODIFIED_ON = ? WHERE  DOCUMENT_ID  = ?";
 		String updateDocumentSQL = "UPDATE DOCUMENT  SET MODIFIED_ON = ? WHERE  ID  = ?";
 		try {
