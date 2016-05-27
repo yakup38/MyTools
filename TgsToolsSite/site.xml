@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/TgsToolsFeature_1.0.0.201605280025.jar" id="TgsToolsFeature" version="1.0.0.201605280025">
+      <category name="TgsTools"/>
+   </feature>
+   <category-def name="TgsTools" label="TGS Tools"/>
+</site>
