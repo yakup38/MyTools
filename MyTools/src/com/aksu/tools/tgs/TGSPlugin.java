@@ -255,7 +255,11 @@ public class TGSPlugin extends AbstractUIPlugin {
 //	}
 	
 	public void log(String msg, Exception e) {
-		getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
+		log(msg, Status.INFO, e);
+	}
+	
+	public void log(String msg, int status, Exception e) {
+		getLog().log(new Status(status, PLUGIN_ID, Status.OK, msg, e));
 	}
 	
 

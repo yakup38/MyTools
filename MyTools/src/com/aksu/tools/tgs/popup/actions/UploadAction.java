@@ -18,8 +18,8 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
@@ -77,12 +77,8 @@ public class UploadAction implements IObjectActionDelegate {
 		final String actionId = action.getId();
 		final String actionText = action.getText();
 
-		System.out.println("actionDefinitionId" + actionDefinitionId);
-		System.out.println("actionId" + actionId);
-		System.out.println("actionText" + actionText);
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
-				try {
 					IFile ifile = null;
 					for (Object elem : ss.toList()) {
 						ifile = (IFile) Platform.getAdapterManager().getAdapter(elem, IFile.class);
@@ -91,68 +87,42 @@ public class UploadAction implements IObjectActionDelegate {
 								ifile = (IFile) ((IAdaptable) elem).getAdapter(IFile.class);
 							}
 						}
-						
-						plugin.log("Before resolving the ifile ", null);
-						plugin.log("ifile.getLocation().toString()" + ifile.getLocation().toString(), null);
-						plugin.log("ifile.getRawLocation().toString()" + ifile.getRawLocation().toString(), null);
-						plugin.log("ifile.getRawLocation().makeAbsolute().toString()" + ifile.getRawLocation().makeAbsolute().toString(), null);
-						uploadToDev(ifile);
+							try {
+								uploadToDev(ifile);
+							} catch (FileNotFoundException e) {
+								plugin.log("The file " + ifile.getName()  + " couldn't be found in Tgs Tools, continuing processing eventual other templates in the list... ", Status.WARNING, e);
+								continue;
+							} catch (IOException e) {
+								plugin.log("An I/O error occured in Tgs Tools, stop processing eventual other templates in the list... ", Status.ERROR, e);
+								break;	
+							} catch (SQLException e) {
+								plugin.log("An  SQL error occured in Tgs Tools, continue processing eventual other templates in the list... ", Status.ERROR, e);
+								continue;
+							}
 					}
 
-				} catch (Exception e) {
-					MessageDialog.openError(Display.getDefault().getActiveShell(), "DFS Action error",
-							"An error occurred while performing DFS operation: " + e.getMessage());
-					e.printStackTrace();
-				}
 			}
 
-			private void uploadToDev(IFile ifile) {
-				System.out.println("Upload to DEV invoked ");
+			private void uploadToDev(IFile ifile) throws FileNotFoundException, IOException, SQLException {
 
-				// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-				// "File path",
-				// "file path is : " + ifile.getLocation().toString());
-				//
-				// MessageDialog.openInformation(Display.getDefault().getActiveShell(),
-				// "File path",
-				// "file path absolute is : " +
-				// ifile.getRawLocation().makeAbsolute().toString());
-				// URI uri = null;
-				//
-				// if(ifile.isLinked()){
-				// uri = ifile.getRawLocationURI();
-				// }else {
-				// uri = ifile.getLocationURI();
-				// }
+				File file = ifile.getRawLocation().toFile();
 
-				// Gets native File using EFS
-
-				// File file = new File(ifile.getRawLocation().toString());
-				File file = null;
-				plugin.log("Attempting to ifile.getRawLocation().toFile() .... ", null);
-
-				file = ifile.getRawLocation().toFile();
-
-				plugin.log("=================== file path : " + file.getAbsolutePath() + " ========================", null);
-				System.out.println("=================== file path : " + file.getAbsolutePath() + " ========================");
 				String tgsId = retrieveTgsId(file);
 				if (tgsId == null || tgsId.isEmpty()) {
-					System.out.println("========== Couldn't find the TGS ID, exiting ... =========");
+					plugin.log("Couldn't find the TGS ID for file " +  file.getName() +  ", exiting ... ", Status.WARNING, null);
 					return;
 				}
-				plugin.log("========== tgsId : " + tgsId + " =========", null);
-				System.out.println("========== tgsId : " + tgsId + " =========");
+
 				Long documentId = retrieveDocumentId(tgsId);
 				if (documentId == null) {
-					System.out.println("========== Couldn't find the Document ID, exiting ... =========");
+					plugin.log("Couldn't find the Document ID for tgsId : " +  tgsId +  ", exiting ... ", Status.WARNING, null);
 					return;
 				}
-				plugin.log("========== documentId : " + documentId + " =========", null);
-				System.out.println("========== documentId : " + documentId + " =========");
 
 				storeContentItem(documentId, file);
 				StringBuilder msg = new StringBuilder("Document ").append(file.getName()).append(" with tgsID = ").append(tgsId)
 						.append(" has been uploaded to DEV");
+				plugin.log(msg.toString(), Status.INFO, null);
 				setMessage(msg.toString());
 			}
 
@@ -164,12 +134,14 @@ public class UploadAction implements IObjectActionDelegate {
 		((IViewSite) site).getActionBars().getStatusLineManager().setMessage(msg);
 	}
 
-	private String retrieveTgsId(File file) {
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+	private String retrieveTgsId(File file) throws FileNotFoundException, IOException {
+		BufferedReader br = null;
+		String tgsIdCandidate = null;
+		try {
+			br = new BufferedReader(new FileReader(file));
 			String line;
 			int count = 0;
 			Pattern pattern = Pattern.compile(".*tgsID.*=(.*)-->.*");
-			String tgsIdCandidate = null;
 			while ((line = br.readLine()) != null && count < 20) {
 				// process the line.
 				Matcher matcher = pattern.matcher(line);
@@ -178,20 +150,25 @@ public class UploadAction implements IObjectActionDelegate {
 					tgsIdCandidate = matcher.group(1);
 					if (tgsIdCandidate != null) {
 						tgsIdCandidate = tgsIdCandidate.trim();
-						System.out.println("============================ tgsIdCandidate : " + tgsIdCandidate + " ====================");
-						return tgsIdCandidate;
 					}
 				}
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			plugin.log("Couldn't find TGS template file ", Status.ERROR, e);
+			throw e;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			plugin.log("An I/O error occured while attempting to retrieve tgsId in Tgs Tools ", Status.ERROR, e);
+			throw e;
+		}finally {
+			try {
+				if(br != null) {
+					br.close();
+				}
+			} catch (IOException e) {
+				plugin.log("An I/O error occured while attempting to close the BufferedReader in Tgs Tools ", Status.ERROR, e);
+			}
 		}
-		System.out.println("============================ tgsId not found  ====================");
-		return null;
+		return tgsIdCandidate;
 	}
 
 	// private String getElePath(IFile ifile) {
@@ -234,7 +211,7 @@ public class UploadAction implements IObjectActionDelegate {
 	// return locationURI.toString();
 	// }
 
-	private Long retrieveDocumentId(String tgsId) {
+	private Long retrieveDocumentId(String tgsId) throws SQLException {
 		Long documentId = null;
 		Connection conn = plugin.getConnection();
 		if (conn != null) {
@@ -247,7 +224,8 @@ public class UploadAction implements IObjectActionDelegate {
 
 				}
 			} catch (java.sql.SQLException sqle) {
-				sqle.printStackTrace();
+				plugin.log("An error occured while attempting to retrieve DocumentID in Tgs Tools ", Status.ERROR, sqle);
+				throw sqle;
 			}
 		}
 		return documentId;
@@ -300,7 +278,7 @@ public class UploadAction implements IObjectActionDelegate {
 		return documentId;
 	}
 
-	public void storeContentItem(Long contentId, File file) {
+	public void storeContentItem(Long contentId, File file) throws SQLException, IOException {
 		// Assume the table row containing other content metadata already exists
 		// and we just do an update
 		PreparedStatement updateAttachment = null;
@@ -320,76 +298,31 @@ public class UploadAction implements IObjectActionDelegate {
 			updateAttachment.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
 			updateAttachment.setLong(4, contentId);
 			int res = updateAttachment.executeUpdate();
-			System.out.println(" ================== Resultat Attachment : " + res + " ====================");
 			updateDocument.setTimestamp(1, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
 			updateDocument.setLong(2, contentId);
 			res = updateDocument.executeUpdate();
-			System.out.println(" ================== Resultat Document : " + res + " ====================");
 			con.commit();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			plugin.log("A SQL error occured while attempting to store the file " + file.getName()  + " in Tgs Tools ", Status.ERROR, e);
 			if (con != null) {
 				try {
-					System.err.print("Transaction is being rolled back");
+					plugin.log("The update template transaction will be rolled back in Tgs Tools ", Status.INFO, e);
 					con.rollback();
+					plugin.log("Transaction is rolled back in Tgs Tools ", Status.INFO, e);
 				} catch (SQLException excep) {
-					excep.printStackTrace();
-				}
+					plugin.log("An error occured while attempting to roll back the transaction in Tgs Tools ", Status.ERROR, e);
+					e.setNextException(excep);
+				} 
 			}
+			throw e;
 		} catch (IOException e) {
-			e.printStackTrace();
+			plugin.log("A I/O error occured while attempting to store the file " + file.getName()  + " in Tgs Tools ", Status.ERROR, e);
+			throw e;
 		} finally {
 			closeResources(updateAttachment, rs);
 		}
 	}
 
-	// public void storeContentItem(Long contentId, InputStream contentStream) {
-	// // Assume the table row containing other content metadata already exists
-	// // and we just do an update
-	// PreparedStatement ps = null;
-	// ResultSet rs = null;
-	// Connection con = activator.getConnection();
-	// try {
-	// // Make sure the content bytes column will have a BLOB value
-	// String update = "UPDATE DOCUMENT SET BYTES = EMPTY_BLOB() WHERE ID = ?";
-	// ps = con.prepareStatement(update);
-	// ps.setLong(1, contentId);
-	// ps.execute();
-	//
-	// try {
-	// ps.close();
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	//
-	// String sql = "SELECT BYTES FROM DOCUMENT WHERE ID = ? FOR UPDATE";
-	//
-	// ps = con.prepareStatement(sql);
-	// ps.setLong(1, contentId);
-	// rs = ps.executeQuery();
-	// if (rs.next()) {
-	// Blob blob = rs.getBlob(1);
-	// blob.truncate(0);
-	// OutputStream outputStream = blob.setBinaryStream(0L);
-	// byte[] buffer = new byte[(int) blob.length() + 900000];
-	// int byteread = 0;
-	// while ((byteread = contentStream.read(buffer)) != -1) {
-	// outputStream.write(buffer, 0, byteread);
-	// }
-	// outputStream.close();
-	// contentStream.close();
-	// con.commit();
-	// }
-	//
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// } finally {
-	// closeResources(ps, rs);
-	// }
-	// }
-	//
 	private void closeResources(PreparedStatement ps, ResultSet rs) {
 		if (ps != null) {
 			try {
