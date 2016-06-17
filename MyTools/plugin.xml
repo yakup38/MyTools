@@ -24,5 +24,33 @@
          </action>
       </objectContribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="com.aksu.tools.tgs.commands.textifyCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+T">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="com.aksu.tools.tgs.commands.category"
+            name="Sample Category">
+      </category>
+      <command
+            categoryId="com.aksu.tools.tgs.commands.category"
+            id="com.aksu.tools.tgs.commands.textifyCommand"
+            name="XSL Textify">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="com.aksu.tools.tgs.handlers.TextifyHandler"
+            commandId="com.aksu.tools.tgs.commands.textifyCommand">
+      </handler>
+   </extension>
 
 </plugin>

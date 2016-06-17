@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.aksu.tools.tgs_1.0.0.201605301324.jar" id="com.aksu.tools.tgs" version="1.0.0.201605301324">
+   <feature url="features/com.aksu.tools.tgs_1.0.0.201605301646.jar" id="com.aksu.tools.tgs" version="1.0.0.201605301646">
       <category name="TgsTools"/>
    </feature>
    <category-def name="TgsTools" label="TGS Tools"/>

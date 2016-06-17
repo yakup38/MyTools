@@ -140,9 +140,8 @@ public class UploadAction implements IObjectActionDelegate {
 		try {
 			br = new BufferedReader(new FileReader(file));
 			String line;
-			int count = 0;
-			Pattern pattern = Pattern.compile(".*tgsID.*=(.*)-->.*");
-			while ((line = br.readLine()) != null && count < 20) {
+			Pattern pattern = Pattern.compile(".*[tT][gG][sS][iI][dD].*=(.*)-->.*");
+			while ((line = br.readLine()) != null) {
 				// process the line.
 				Matcher matcher = pattern.matcher(line);
 				boolean result = matcher.matches();
