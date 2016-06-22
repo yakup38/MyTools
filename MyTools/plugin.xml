@@ -37,7 +37,7 @@
          point="org.eclipse.ui.commands">
       <category
             id="com.aksu.tools.tgs.commands.category"
-            name="Sample Category">
+            name="Tgs Commands">
       </category>
       <command
             categoryId="com.aksu.tools.tgs.commands.category"

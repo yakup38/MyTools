@@ -38,6 +38,7 @@ import org.eclipse.wst.sse.ui.internal.comment.BlockCommentingStrategy;
 import org.eclipse.wst.sse.ui.internal.comment.CommentingStrategy;
 import org.eclipse.wst.sse.ui.internal.comment.CommentingStrategyRegistry;
 import org.eclipse.wst.sse.ui.internal.comment.LineCommentingStrategy;
+import org.eclipse.wst.sse.ui.internal.handlers.AbstractCommentHandler;
 
 /**
  * <p>A comment handler to toggle line comments, this means that if a
@@ -210,8 +211,9 @@ public final class TextifyHandler extends AbstractCommentHandler {
 						//try to get a line comment type
 						ITypedRegion[] lineTypedRegions =
 							this.fDocument.computePartitioning(lineRegion.getOffset(), lineRegion.getLength());
-						CommentingStrategy commentType = CommentingStrategyRegistry.getDefault().getLineCommentingStrategy(
-								this.fContentType, lineTypedRegions);
+//						CommentingStrategy commentType = CommentingStrategyRegistry.getDefault().getLineCommentingStrategy(
+//								this.fContentType, lineTypedRegions);
+						CommentingStrategy commentType = new BlockCommentingStrategy("<xsl:text>", "</xsl:text>");
 						
 						//could not find line comment type so find block comment type to use on line
 						if(commentType == null) {
