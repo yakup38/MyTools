@@ -41,7 +41,7 @@ public final class TextifyHandler extends AbstractHandler {
 
 		try {
 			IEditorPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-			
+
 			ITextEditor editor = null;
 
 			if (part instanceof ITextEditor) {
@@ -55,25 +55,26 @@ public final class TextifyHandler extends AbstractHandler {
 			if (editor != null) {
 				IDocumentProvider provider = editor.getDocumentProvider();
 				IDocument document = provider.getDocument(editor.getEditorInput());
-				
-				
-				
+
 				ISelection sel = editor.getSelectionProvider().getSelection();
+
 				if (sel instanceof TextSelection) {
 					final TextSelection textSel = (TextSelection) sel;
+					String newText = null;
 
-//					 int lineStart = document.getLineInformationOfOffset(command.offset).getOffset();
-//					    String lineContents = document.get(lineStart, command.offset - lineStart);					
-					
-					int offsetStart = textSel.getOffset();
-					int lineStart = document.getLineOfOffset(offsetStart);
-					int lineLength = document.getLineLength(lineStart);
-					
-				    String lineContents = document.get(offsetStart, lineLength);
-//				    lineContents = lineContents.replaceAll("(\\r|\\n)", "");
-				    String newText = "<xsl:text>" + lineContents ;
-				    newText = newText.replaceFirst("\r\n", "</xsl:text>\r\n");
-					document.replace(offsetStart, lineLength, newText);
+					if (textSel.getLength() == 0) {
+						int offsetStart = textSel.getOffset();
+						int lineStart = document.getLineOfOffset(offsetStart);
+						int lineLength = document.getLineLength(lineStart);
+
+						String lineContents = document.get(offsetStart, lineLength);
+						newText = "<xsl:text>" + lineContents;
+						newText = newText.replaceFirst("\r\n", "</xsl:text>\r\n");
+						document.replace(offsetStart, lineLength, newText);
+					} else {
+						newText = "<xsl:text>" + textSel.getText() + "</xsl:text>";
+						document.replace(textSel.getOffset(), textSel.getLength(), newText);
+					}
 				}
 			}
 		} catch (Exception ex) {

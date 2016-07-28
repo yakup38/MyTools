@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TgsTools
 Bundle-SymbolicName: com.aksu.tools.tgs;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 0.0.1.qualifier
 Bundle-Activator: com.aksu.tools.tgs.TGSPlugin
-Bundle-Vendor: Yakup AKSU
+Bundle-Vendor: Yakup Aksu
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,

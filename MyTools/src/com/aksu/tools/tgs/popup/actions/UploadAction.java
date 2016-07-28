@@ -282,15 +282,18 @@ public class UploadAction implements IObjectActionDelegate {
 		// and we just do an update
 		PreparedStatement updateAttachment = null;
 		PreparedStatement updateDocument = null;
+		PreparedStatement updateAttribute = null;
 		ResultSet rs = null;
 		Connection con = plugin.getConnection();
 		String updateAttachmentSQL = "UPDATE EDOMEC_ATTACHMENT  SET BYTES = ?, LENGTH = ?, MODIFIED_ON = ? WHERE  DOCUMENT_ID  = ?";
 		String updateDocumentSQL = "UPDATE DOCUMENT  SET MODIFIED_ON = ? WHERE  ID  = ?";
+		String updateAttributeSQL = "update EDOMEC_ATTRIBUTES att set att.MODIFIED_BY = ?, att.MODIFIED_ON = sysdate where id = (select EDOMEC_ATTRIBUTE_ID from DOCUMENT where ID = ?)";
 		try {
 			// Make sure the content bytes column will have a BLOB value
 			con.setAutoCommit(false);
 			updateAttachment = con.prepareStatement(updateAttachmentSQL);
 			updateDocument = con.prepareStatement(updateDocumentSQL);
+			updateAttribute = con.prepareStatement(updateAttributeSQL);
 			int length = (int) file.length();
 			updateAttachment.setBinaryStream(1, new FileInputStream(file), length);
 			updateAttachment.setLong(2, length);
@@ -300,6 +303,9 @@ public class UploadAction implements IObjectActionDelegate {
 			updateDocument.setTimestamp(1, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
 			updateDocument.setLong(2, contentId);
 			res = updateDocument.executeUpdate();
+			updateAttribute.setString(1, System.getProperty("user.name"));
+			updateAttribute.setLong(2, contentId);
+			res = updateAttribute.executeUpdate();
 			con.commit();
 		} catch (SQLException e) {
 			plugin.log("A SQL error occured while attempting to store the file " + file.getName()  + " in Tgs Tools ", Status.ERROR, e);
