@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
@@ -105,7 +106,12 @@ public class UploadAction implements IObjectActionDelegate {
 
 			private void uploadToDev(IFile ifile) throws FileNotFoundException, IOException, SQLException {
 
-				File file = ifile.getRawLocation().toFile();
+				File file = null;
+				if(ifile.isLinked(IResource.CHECK_ANCESTORS)) {
+					file = ifile.getLocation().toFile();
+				} else {
+					file = ifile.getRawLocation().toFile();
+				}
 
 				String tgsId = retrieveTgsId(file);
 				if (tgsId == null || tgsId.isEmpty()) {

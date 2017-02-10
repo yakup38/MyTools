@@ -3,8 +3,8 @@
    <description name="Tgs Tools">
       Provides useful tools for working on TGS templating system.
    </description>
-   <feature url="features/com.aksu.tools.tgs_0.0.1.201607041649.jar" id="com.aksu.tools.tgs" version="0.0.1.201607041649">
+   <feature url="features/com.aksu.tools.tgs_1.0.0.201702081652.jar" id="com.aksu.tools.tgs" version="1.0.0.201702081652">
       <category name="TgsTools"/>
    </feature>
-   <category-def name="TgsTools" label="TGS Tools"/>
+   <category-def name="TgsTools" label="Tgs Tools"/>
 </site>

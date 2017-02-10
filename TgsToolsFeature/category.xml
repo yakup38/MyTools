@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.aksu.tools.tgs_1.0.0.qualifier.jar" id="com.aksu.tools.tgs" version="1.0.0.qualifier">
+      <category name="TgsTools"/>
+   </feature>
+   <category-def name="TgsTools" label="Tgs Tools"/>
+</site>

@@ -52,5 +52,28 @@
             commandId="com.aksu.tools.tgs.commands.textifyCommand">
       </handler>
    </extension>
+   <extension
+         point="com.ibm.team.process.client.operationParticipants">
+      <operationParticipant
+            class="com.aksu.tools.tgs.popup.actions.ManageWIParticipant"
+            deprecated="false"
+            id="com.aksu.tools.tgs.manageWIParticipant"
+            name="Manage WI">
+      </operationParticipant>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.aksu.tools.tgs.preferences.TGSToolsPreferencePage"
+            id="com.aksu.tools.tgs.preferences.TGSToolsPreferencePage"
+            name="TGS Tools Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="com.aksu.tools.tgs.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
 
 </plugin>

@@ -2,7 +2,7 @@
 <feature
       id="com.aksu.tools.tgs"
       label="Tgs Tools feature"
-      version="0.0.1.qualifier"
+      version="1.0.0.qualifier"
       provider-name="Yakup Aksu">
 
    <description url="http://www.example.com/description">
@@ -10,18 +10,18 @@
    </description>
 
    <copyright url="http://www.example.com/copyright">
-      [Enter Copyright Description here.]
+      You agree to bring the coffee to EL CAPO every morning :-)
    </copyright>
 
    <license url="http://www.example.com/license">
-      [Enter License Description here.]
+      You agree to bring the coffee to EL CAPO every morning :-)
    </license>
 
    <plugin
          id="com.aksu.tools.tgs"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="1.0.0.qualifier"
          unpack="false"/>
 
 </feature>
