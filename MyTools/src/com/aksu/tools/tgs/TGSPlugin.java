@@ -45,9 +45,9 @@ public class TGSPlugin extends AbstractUIPlugin {
 	// "C:\\Oracle\\Oracle_Home\\oracle_common\\rda\\da\\lib\\ojdbc14.jar";
 	// //$NON-NLS-1$
 	private static String jarList = "ojdbc6-12.1.2-0-0.jar"; //$NON-NLS-1$
-	private static String dbName = "fp6rtdy"; //$NON-NLS-1$
-	private static String userName = "tgs_rw"; //$NON-NLS-1$
-	private static String password = "uWXET_7E5"; //$NON-NLS-1$
+	private static String dbName = "service_name"; //$NON-NLS-1$
+	private static String userName = "encrypted_username"; //$NON-NLS-1$
+	private static String password = "encrypted_passwordt"; //$NON-NLS-1$
 
 	private static String driverClass = "oracle.jdbc.OracleDriver"; //$NON-NLS-1$
 	private static String driverURL = "jdbc:oracle:thin:@ldap://oid.cc.cec.eu.int:389/fp6rtdy,cn=OracleContext,dc=cc,dc=cec,dc=eu,dc=int"; //$NON-NLS-1$ //$NON-NLS-2$
